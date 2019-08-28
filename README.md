@@ -1,7 +1,7 @@
 # flutter_tenc_map
 腾讯地图定位
 
-##android：配置地图Key
+# android：配置地图Key
 在AndroidManifest.xml中配置
     <application
             ...
@@ -13,7 +13,7 @@
 
     value为腾讯地图的KEY值
 
-##使用方法
+# 使用方法
  1.导入包
 
  import 'package:flutter_tenc_map/flutter_tenc_map.dart';
