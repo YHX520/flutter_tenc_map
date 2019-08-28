@@ -1,6 +1,7 @@
 # flutter_tenc_map
 腾讯地图定位
 
+[![pub package]](https://pub.dartlang.org/packages/image_cropper)
 # android：配置地图Key
 在AndroidManifest.xml中配置
 ````xml
