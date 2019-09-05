@@ -152,6 +152,7 @@ class FlutterTencMapPlugin(newActivity: Activity, channel: MethodChannel, regist
     override fun onLocationChanged(location: TencentLocation, error: Int, reason: String) {
         //System.out.println("定位"+location!!.address)
         //Toast.makeText(activity, reason + location.address, Toast.LENGTH_LONG).show();
+
         if (error == 0) {
             val map = HashMap<String, Any>();
             this.location = location
@@ -159,6 +160,7 @@ class FlutterTencMapPlugin(newActivity: Activity, channel: MethodChannel, regist
             map.put("latitude", location.latitude)
             map.put("longitude", location.longitude)
             map.put("address", location.address)
+            map.put("code",200)
 
             for (result in resultLista!!.iterator()) {
                 result.success(map)
@@ -169,7 +171,30 @@ class FlutterTencMapPlugin(newActivity: Activity, channel: MethodChannel, regist
                 // Log.d("调用", "location");
                 channel!!.invokeMethod("flutter_tenc_map_backLocation", map)
             }
-        }else{ }
+        }else {
+            val map = HashMap<String, Any>();
+            this.location = location
+
+            var code=4
+
+            when(error){
+                1-> {code=2}
+                2-> {code=1}
+                4-> {code=0}
+            }
+
+            map.put("code",code)
+            for (result in resultLista!!.iterator()) {
+                result.success(map)
+            }
+            resultLista!!.clear();
+
+            if (channel != null) {
+                // Log.d("调用", "location");
+                channel!!.invokeMethod("flutter_tenc_map_backLocation", map)
+            }
+
+        }
 
     }
 

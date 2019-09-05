@@ -20,15 +20,37 @@ class _MyAppState extends State<MyApp> {
 
   LocationController locationController = LocationController();
 
+  String status = "定位中...";
+
   @override
   void initState() {
     super.initState();
     initPlatformState();
     FlutterTencMap.locationController.listener.add((location) {
       this.location = location;
+      switch (location.code) {
+        case 0:
+          status = "无法定位";
+          break;
+        case 1:
+          status = "缺少权限";
+          break;
+        case 2:
+          status = "网络错误";
+          break;
+        case 3:
+          status = "无法获取方向";
+          break;
+        case 4:
+          status = "错未知错误";
+          break;
+        case 200:
+          status = "正常";
+          break;
+      }
       setState(() {});
     });
-    FlutterTencMap.init("fdsa");
+    FlutterTencMap.init("5J2BZ-RKD63-6WU3E-YM6GU-COWVQ-ZSFS5");
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -74,6 +96,7 @@ class _MyAppState extends State<MyApp> {
                     : (location.address ?? "") +
                         ("经度：${location.longitude} ") +
                         "纬度：${location.latitude}")),
+            Text("状态：$status"),
             RaisedButton(
               onPressed: () {
                 stopLocation();
@@ -87,7 +110,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   getLocation() async {
-    location = await FlutterTencMap.getLocation(10000);
+    location = await FlutterTencMap.getLocation(2000);
     setState(() {});
   }
 

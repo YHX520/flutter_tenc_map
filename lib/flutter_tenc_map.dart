@@ -22,12 +22,16 @@ class FlutterTencMap {
       switch (methodCall.method) {
         case "flutter_tenc_map_backLocation":
           //返回定位信息
-
           Location location = Location();
-          location.name = await methodCall.arguments['name'];
-          location.latitude = await methodCall.arguments['latitude'];
-          location.longitude = await methodCall.arguments['longitude'];
-          location.address = await methodCall.arguments['address'];
+          location.code = methodCall.arguments['code'];
+          print(location.code);
+          if (location.code == 200) {
+            location.name = await methodCall.arguments['name'];
+            location.latitude = await methodCall.arguments['latitude'];
+            location.longitude = await methodCall.arguments['longitude'];
+            location.address = await methodCall.arguments['address'];
+          }
+
           if (locationController.listener.length > 0) {
             for (LocationCallBack locationCallBack
                 in locationController.listener) {
@@ -40,12 +44,12 @@ class FlutterTencMap {
       }
     });
 
-    return await _channel.invokeMethod("flutter_tenc_map_init");
+    return await _channel.invokeMethod("flutter_tenc_map_init", {"key": key});
   }
 
-  static Future<Location> getLocation(double interval) async {
-    var data = await _channel
-        .invokeMethod("flutter_tenc_map_getLocation", {"interval": interval});
+  static Future<Location> getLocation(int interval) async {
+    var data = await _channel.invokeMethod(
+        "flutter_tenc_map_getLocation", {"interval": interval.toDouble()});
     if (data == "error") {
       return null;
     }
