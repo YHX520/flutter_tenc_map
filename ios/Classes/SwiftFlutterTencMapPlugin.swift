@@ -70,7 +70,7 @@ public class SwiftFlutterTencMapPlugin: NSObject, FlutterPlugin {
     @objc public func startLocation(){
         
         self.location?.requestLocation(completionBlock: { (location:TencentLBSLocation?,e: Error?) in
-            print(e)
+           // print(e)
             var map=Dictionary<String,Any>.init()
             
             if(e != nil){
