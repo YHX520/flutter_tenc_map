@@ -47,4 +47,14 @@ class Location {
   int getCode() {
     return code;
   }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['latitude'] = this.latitude;
+    data['longitude'] = this.longitude;
+    data['name'] = this.name;
+    data['address'] = this.address;
+    data['altitude'] = this.altitude;
+    return data;
+  }
 }

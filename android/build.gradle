@@ -40,7 +40,7 @@ android {
     }
     defaultConfig {
 
-        minSdkVersion 16
+        minSdkVersion 21
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     lintOptions {
@@ -54,6 +54,7 @@ dependencies {
 
             api files('libs/TencentLocationSdk_v7.1.7_r02c4bb5a_20190523_115148.jar')
     implementation 'androidx.core:core-ktx:1.0.2'
+    implementation 'com.tencent.map:tencent-map-vector-sdk:latest.release'
 }
 
 

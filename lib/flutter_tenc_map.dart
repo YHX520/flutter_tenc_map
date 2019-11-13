@@ -7,6 +7,9 @@ import 'controll/location_controller.dart';
 
 export 'model/location.dart';
 export 'controll/location_controller.dart';
+export 'package:flutter_tenc_map/map_view/map_view.dart';
+export 'package:flutter_tenc_map/model/my_location_style.dart';
+export 'package:flutter_tenc_map/model/tag_tip.dart';
 
 class FlutterTencMap {
   static const MethodChannel _channel = const MethodChannel('flutter_tenc_map');
@@ -24,7 +27,7 @@ class FlutterTencMap {
           //返回定位信息
           Location location = Location();
           location.code = methodCall.arguments['code'];
-          print(location.code);
+          // print(location.code);
           if (location.code == 200) {
             location.name = await methodCall.arguments['name'];
             location.latitude = await methodCall.arguments['latitude'];
@@ -53,7 +56,7 @@ class FlutterTencMap {
     if (data == "error") {
       return null;
     }
-    print(data);
+    //print(data);
     Location location = Location();
     location.name = data['name'];
     location.latitude = data['latitude'];

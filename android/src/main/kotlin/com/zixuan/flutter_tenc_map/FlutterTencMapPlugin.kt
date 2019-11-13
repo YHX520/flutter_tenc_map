@@ -2,8 +2,10 @@ package com.zixuan.flutter_tenc_map
 
 import android.Manifest
 import android.app.Activity
+import android.app.Application
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -13,17 +15,23 @@ import com.tencent.map.geolocation.TencentLocation
 import com.tencent.map.geolocation.TencentLocationListener
 import com.tencent.map.geolocation.TencentLocationManager
 import com.tencent.map.geolocation.TencentLocationRequest
+import com.zixuan.flutter_tenc_map.mapView.MapViewFactory
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Handler
 
+const val START=0
+const val CREATED = 1
+const val RESUMED = 3
+const val STOPPED = 5
+const val DESTROYED = 6
 
 @RequiresApi(Build.VERSION_CODES.M)
 class FlutterTencMapPlugin(newActivity: Activity, channel: MethodChannel, registrar: Registrar) : MethodCallHandler, TencentLocationListener {
-
 
     var tencentLocationRequest: TencentLocationRequest? = null
 
@@ -38,19 +46,21 @@ class FlutterTencMapPlugin(newActivity: Activity, channel: MethodChannel, regist
 
     var result: Result? = null;
 
-    var registrar: Registrar? = null
+
+
+
 
     init {
         activity = newActivity
         this.channel = channel
         this.resultLista = arrayListOf()
-        this.registrar = registrar
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
             registrar.addRequestPermissionsResultListener { code, _, grants ->
                 if (code == 200 && grants[0] == PackageManager.PERMISSION_GRANTED) {
                     init()
                 } else {
+                    init()
                     result!!.success("");
                 }
                 return@addRequestPermissionsResultListener true
@@ -60,22 +70,86 @@ class FlutterTencMapPlugin(newActivity: Activity, channel: MethodChannel, regist
 
     }
 
+    ///初始化定位管理器
     private fun init() {
         if (tencentLocationManager == null) {
-             Toast.makeText(activity!!, "已开启定位权限", Toast.LENGTH_LONG).show();
+            //Toast.makeText(activity!!, "已开启定位权限", Toast.LENGTH_LONG).show();
             tencentLocationRequest = TencentLocationRequest.create()
             tencentLocationManager = TencentLocationManager.getInstance(activity!!)
-            result!!.success("success")
+           // result!!.success("success")
         }
 
     }
 
-    companion object {
+    companion object :Application.ActivityLifecycleCallbacks{
+
+        lateinit var registrar: Registrar
+
+        private  var  activityState = AtomicInteger(0)
+
+        private var registrarActivityHashCode: Int = 0
+
+
         @JvmStatic
         fun registerWith(registrar: Registrar) {
+            this.registrar=registrar;
+            registrar.platformViewRegistry().registerViewFactory("plugins.tencmap.mapview/mapview", MapViewFactory(registrar.messenger(), activityState))
+            registrar.activity().application.registerActivityLifecycleCallbacks(this)
             val channel = MethodChannel(registrar.messenger(), "flutter_tenc_map")
             channel.setMethodCallHandler(FlutterTencMapPlugin(registrar.activity(), channel, registrar))
+
         }
+
+        override fun onActivityPaused(activity: Activity) {
+            if (activity.hashCode() != registrarActivityHashCode) {
+                return
+            }
+
+        }
+
+        override fun onActivityResumed(activity: Activity) {
+            if (activity.hashCode() != registrarActivityHashCode) {
+                return
+            }
+            activityState.set(RESUMED)
+        }
+
+        override fun onActivityStarted(activity: Activity) {
+            if (activity.hashCode() != registrarActivityHashCode) {
+                return
+            }
+            activityState.set(CREATED)
+        }
+
+        override fun onActivityDestroyed(activity: Activity) {
+            if (activity.hashCode() != registrarActivityHashCode) {
+                return
+            }
+            activityState.set(DESTROYED)
+        }
+
+        override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle?) {
+            if (activity.hashCode() != registrarActivityHashCode) {
+                return
+            }
+        }
+
+        override fun onActivityStopped(activity: Activity) {
+            if (activity.hashCode() != registrarActivityHashCode) {
+                return
+            }
+            activityState.set(STOPPED)
+        }
+
+        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+            if (activity.hashCode() != registrarActivityHashCode) {
+                return
+            }
+
+            activityState.set(CREATED)
+        }
+
+
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -93,7 +167,7 @@ class FlutterTencMapPlugin(newActivity: Activity, channel: MethodChannel, regist
                             != PackageManager.PERMISSION_GRANTED) {//未开启定位权限
                         //开启定位权限,200是标识码
                         ActivityCompat.requestPermissions(activity!!, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CHANGE_WIFI_STATE), 200);
-                    }else{
+                    } else {
                         init()
                     }
                 } else {
@@ -111,7 +185,9 @@ class FlutterTencMapPlugin(newActivity: Activity, channel: MethodChannel, regist
                     interval = ((call.arguments as HashMap<String, Any>)["interval"] as Double).toLong();
                 }
 
-                print(interval);
+               // print(interval);
+
+
                 if (resultLista!!.size <= 0) {
                     tencentLocationRequest!!.interval = interval;
                     val error = tencentLocationManager!!.requestLocationUpdates(tencentLocationRequest!!, this);
@@ -160,7 +236,7 @@ class FlutterTencMapPlugin(newActivity: Activity, channel: MethodChannel, regist
             map.put("latitude", location.latitude)
             map.put("longitude", location.longitude)
             map.put("address", location.address)
-            map.put("code",200)
+            map.put("code", 200)
 
             for (result in resultLista!!.iterator()) {
                 result.success(map)
@@ -171,19 +247,27 @@ class FlutterTencMapPlugin(newActivity: Activity, channel: MethodChannel, regist
                 // Log.d("调用", "location");
                 channel!!.invokeMethod("flutter_tenc_map_backLocation", map)
             }
-        }else {
+        } else {
             val map = HashMap<String, Any>();
             this.location = location
 
-            var code=4
+            var code = 4
 
-            when(error){
-                1-> {code=2}
-                2-> {code=1}
-                4-> {code=0}
+
+
+            when (error) {
+                1 -> {
+                    code = 2
+                }
+                2 -> {
+                    code = 1
+                }
+                4 -> {
+                    code = 0
+                }
             }
 
-            map.put("code",code)
+            map.put("code", code)
             for (result in resultLista!!.iterator()) {
                 result.success(map)
             }
@@ -197,6 +281,8 @@ class FlutterTencMapPlugin(newActivity: Activity, channel: MethodChannel, regist
         }
 
     }
+
+
 
 
 }
