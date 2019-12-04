@@ -7,18 +7,24 @@ public class SwiftFlutterTencMapPlugin: NSObject, FlutterPlugin {
     var location:TencentLBSLocationManager?
     var timer:Timer?
     var resultList:Array<FlutterResult>=Array()
+   
+    public  init(channle:FlutterMethodChannel) {
+        self.channel=channle
+    }
     
-   public static var channel:FlutterMethodChannel?
+    
+   public  var channel:FlutterMethodChannel?
     
   public static func register(with registrar: FlutterPluginRegistrar) {
-     channel = FlutterMethodChannel(name: "flutter_tenc_map", binaryMessenger: registrar.messenger())
-    let instance = SwiftFlutterTencMapPlugin()
-    registrar.addMethodCallDelegate(instance, channel: channel!)
+    let channel = FlutterMethodChannel(name: "flutter_tenc_map/channel", binaryMessenger: registrar.messenger())
+    let instance = SwiftFlutterTencMapPlugin(channle: channel)
+    registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
   
 
   public func handle(_ call: FlutterMethodCall,result: @escaping FlutterResult) {
+
     print(call.method)
     switch call.method {
     case "getPlatformVersion":
@@ -59,7 +65,7 @@ public class SwiftFlutterTencMapPlugin: NSObject, FlutterPlugin {
         
       let args = key as! Dictionary<String, Any>
         
-        print(args["key"]!,"ke")
+      
         self.location=TencentLBSLocationManager.init()
         self.location?.apiKey=args["key"] as! String
         self.location?.requestWhenInUseAuthorization()
@@ -87,7 +93,7 @@ public class SwiftFlutterTencMapPlugin: NSObject, FlutterPlugin {
                 result(map)
             }
             self.resultList.removeAll()
-            SwiftFlutterTencMapPlugin.channel?.invokeMethod("flutter_tenc_map_backLocation", arguments: map)
+            self.channel?.invokeMethod("flutter_tenc_map_backLocation", arguments: map)
             
         })
     }
